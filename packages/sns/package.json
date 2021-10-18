@@ -1,0 +1,13 @@
+{
+  "name": "@packages/sns",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "jsonwebtoken": "^8.5.1",
+    "jwks-rsa": "^2.0.2",
+    "moment": "^2.29.1",
+    "moment-timezone": "^0.5.33"
+  }
+}

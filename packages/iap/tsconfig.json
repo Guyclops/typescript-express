@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "composite": true,
+    "noImplicitAny": false
+  },
+  "include": ["."],
+  "exclude": ["dist"],
+  "references": [{ "path": "../api" }]
+}

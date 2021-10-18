@@ -1,0 +1,62 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "API 문서",
+    "version": "1.0.0",
+    "title": "API Document",
+    "contact": {
+      "email": "fgb@fgb.ai"
+    }
+  },
+  "host": "localhost:3000",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "일반",
+      "description": "일반 API"
+    }
+  ],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "value": "Bearer <Token>"
+    }
+  },
+  "schemes": ["http", "https"],
+  "paths": {
+    "/signin": {
+      "$ref": "./model/sign.json#/paths/signin"
+    }
+  },
+  "definitions": {
+    "response": {
+      "default": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 0,
+            "description": "성공시 0, 그외 -1"
+          },
+          "data": {
+            "type": "object",
+            "example": {},
+            "description": "결과데이터"
+          }
+        }
+      }
+    },
+    "code": {
+      "type": "integer",
+      "example": 0,
+      "description": "성공시 0, 그외 -1"
+    },
+    "User": {
+      "$ref": "./model/user.json#/definitions/User"
+    }
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "API 문서",
+    "version": "1.0.0",
+    "title": "API Document",
+    "contact": {
+      "email": "fgb@fgb.ai"
+    }
+  },
+  "host": "localhost:3000",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "일반",
+      "description": "일반 API"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "value": "Bearer <Token>"
+    }
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "paths": {
+    "/signin": {
+      "post": {
+        "tags": [
+          "일반"
+        ],
+        "summary": "로그인",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "example": {
+                "id": "아이디(필수)",
+                "password": "비밀번호(필수)"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "schema": {
+              "type": "object",
+              "example": {
+                "code": 0,
+                "data": {
+                  "accessToken": "권한용 토큰",
+                  "refreshToken": "갱신용 토큰"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "response": {
+      "default": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 0,
+            "description": "성공시 0, 그외 -1"
+          },
+          "data": {
+            "type": "object",
+            "example": {},
+            "description": "결과데이터"
+          }
+        }
+      }
+    },
+    "code": {
+      "type": "integer",
+      "example": 0,
+      "description": "성공시 0, 그외 -1"
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "userSeq": {
+          "type": "integer",
+          "example": 1,
+          "description": "회원키"
+        },
+        "id": {
+          "type": "string",
+          "example": "id",
+          "description": "아이디"
+        }
+      }
+    }
+  }
+}

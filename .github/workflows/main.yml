@@ -1,0 +1,183 @@
+# This is a basic workflow to help you get started with Actions
+name: CI/CD
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [deploy-dev, deploy-prod, deploy-ecs] # update
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # deploy dev
+  deploy-dev:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    env:
+      NODE_OPTIONS: "--max_old_space_size=4096"
+    # 어떤 branch에서만 동작할지 정의
+    if: github.ref == 'refs/heads/deploy-dev' # update
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v1
+
+      # 사용중인 Node 버전 확인
+      - name: Uses Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: sudo npm install -g yarn typescript
+
+      # 모듈 설치
+      - name: Installing module
+        run: yarn
+
+      # 빌드
+      - name: build
+        run: yarn build-back
+
+      - name: nodecommand
+        run: cp config/back.Procfile Procfile
+
+      # 서버 파일 zip
+      - name: Generate deployment package
+        run: zip -r deploy.zip ./ -x '*.git*' # update
+
+      - name: Get current time
+        uses: 1466587594/get-current-time@v2
+        id: current-time
+        with:
+          format: YYYYMMDD
+          utcOffset: "+09:00"
+
+      # Beanstalk 배포
+      - name: Beanstalk Deploy
+        uses: einaregilsson/beanstalk-deploy@v14
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: dev-fanddle # update
+          environment_name: Devfanddle-env # update
+          version_label: ${{ steps.current-time.outputs.formattedTime }}_${{ github.run_number }}
+          region: ap-northeast-2
+          deployment_package: ./deploy.zip
+
+      - name: Deploy Result Notification
+        uses: 8398a7/action-slack@v2.6.0
+        with:
+          status: ${{ job.status }}
+          channel: "서버알림"
+          author_name: "App Server Deploy"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }} # required
+        if: always()
+
+  # deploy prod
+  deploy-prod:
+    runs-on: ubuntu-latest
+
+    env:
+      NODE_OPTIONS: "--max_old_space_size=4096"
+
+    if: github.ref == 'refs/heads/deploy-prod' # update
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Uses Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: sudo npm install -g yarn typescript
+
+      - name: Installing module
+        run: yarn
+
+      - name: build
+        run: yarn build-back
+
+      - name: nodecommand
+        run: cp config/back.Procfile Procfile
+
+      - name: Generate deployment package
+        run: zip -r deploy.zip ./ -x '*.git*' # update
+
+      - name: Get current time
+        uses: 1466587594/get-current-time@v2
+        id: current-time
+        with:
+          format: YYYYMMDD
+          utcOffset: "+09:00"
+
+      - name: Beanstalk Deploy
+        uses: einaregilsson/beanstalk-deploy@v14
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: prod-fanddle # update
+          environment_name: Prodfanddle-env # update
+          version_label: ${{ steps.current-time.outputs.formattedTime }}_${{ github.run_number }}
+          region: ap-northeast-2
+          deployment_package: ./deploy.zip
+
+      - name: Deploy Result Notification
+        uses: 8398a7/action-slack@v2.6.0
+        with:
+          status: ${{ job.status }}
+          channel: "서버알림"
+          author_name: "App Server Deploy"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }} # required
+        if: always()
+
+  deploy-ecs-test:
+    runs-on: ubuntu-latest
+    if: contains(github.ref, 'deploy-ecs')
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: test
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: fargate_test
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          service: test-node
+          cluster: testecs
+          wait-for-service-stability: true

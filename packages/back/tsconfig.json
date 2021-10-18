@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "composite": true
+  },
+  "include": [".", "**/*.json"],
+  "exclude": ["dist"],
+  "references": [
+    { "path": "../database" },
+    { "path": "../sns" },
+    { "path": "../iap" },
+    { "path": "../fcm" },
+    { "path": "../webhook" },
+    { "path": "../translate" }
+  ]
+}

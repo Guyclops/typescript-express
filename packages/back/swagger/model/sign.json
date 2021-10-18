@@ -1,0 +1,39 @@
+{
+  "paths": {
+    "signin": {
+      "post": {
+        "tags": ["일반"],
+        "summary": "로그인",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "example": {
+                "id": "아이디(필수)",
+                "password": "비밀번호(필수)"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "schema": {
+              "type": "object",
+              "example": {
+                "code": 0,
+                "data": {
+                  "accessToken": "권한용 토큰",
+                  "refreshToken": "갱신용 토큰"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

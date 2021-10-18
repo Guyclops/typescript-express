@@ -1,0 +1,22 @@
+{
+  "paths": {
+    "/user": {}
+  },
+  "definitions": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "userSeq": {
+          "type": "integer",
+          "example": 1,
+          "description": "회원키"
+        },
+        "id": {
+          "type": "string",
+          "example": "id",
+          "description": "아이디"
+        }
+      }
+    }
+  }
+}
