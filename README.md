@@ -11,7 +11,7 @@
 ```
 ├── .github: github action 설정
 ├── .platform: ElasticBeanstalk 설정
-├── config: ElasticBeanstalk back / admin 실행 명령어 구분
+├── config: ElasticBeanstalk back 실행 명령어 구분
 ├── packages
 │   ├── api: axios 모듈
 │   ├── back: 앱 서버
@@ -95,6 +95,6 @@ yarn run build-rm: 빌드파일 삭제
 
 8. 이미지 리사이징(./resize)
 
-   - Lambda@Edge(버지니아 북부 us-east-1)에 zip으로 배포
+   - Lambda@Edge(us-east-1)에 zip으로 배포
 
    - CloudFront + S3 + Lambda@Edge으로 이미지 요청시 리사이징
